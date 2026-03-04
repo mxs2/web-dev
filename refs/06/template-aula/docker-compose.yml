@@ -1,0 +1,18 @@
+
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: cache_pg
+    environment:
+      POSTGRES_USER: cache_user
+      POSTGRES_PASSWORD: cache_password
+      POSTGRES_DB: cache_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata_cache:/var/lib/postgresql/data
+
+volumes:
+  pgdata_cache:
