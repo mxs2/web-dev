@@ -1,0 +1,80 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Pool {
+  id          Int           @id @default(autoincrement())
+  name        String
+  code        String        @unique
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  participants Participant[]
+  guesses     Guess[]
+}
+
+model Participant {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  poolId    Int
+  pool      Pool     @relation(fields: [poolId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  guesses   Guess[]
+
+  @@unique([email, poolId])
+  @@index([poolId])
+}
+
+model Match {
+  id          Int         @id @default(autoincrement())
+  homeTeam    String
+  awayTeam    String
+  stage       MatchStage
+  kickoffAt   DateTime
+  homeScore   Int?
+  awayScore   Int?
+  status      MatchStatus @default(SCHEDULED)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  guesses     Guess[]
+}
+
+model Guess {
+  id            Int      @id @default(autoincrement())
+  poolId        Int
+  pool          Pool     @relation(fields: [poolId], references: [id], onDelete: Cascade)
+  participantId Int
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  matchId       Int
+  match         Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  homeScore     Int
+  awayScore     Int
+  points        Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([participantId, matchId, poolId])
+  @@index([poolId])
+  @@index([matchId])
+}
+
+enum MatchStage {
+  GRUPOS
+  OITAVAS
+  QUARTAS
+  SEMI
+  FINAL
+}
+
+enum MatchStatus {
+  SCHEDULED
+  LIVE
+  FINISHED
+}
